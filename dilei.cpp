@@ -7,6 +7,7 @@
 
 #pragma comment(lib,"User32.lib")
 #pragma comment(lib,"gdi32.lib")
+#pragma comment(lib, "winmm.lib")
 
 
 //格子区域大小（DIVISIONS * DIVISIONS）
@@ -192,8 +193,19 @@ LRESULT CALLBACK DealMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         //判断是否点击到了雷
         if (iChess[p.x][p.y] == -1)
         {
-            if (MessageBox(hWnd, TEXT("你踩到地雷了！"), TEXT("boom"), MB_OK) == IDOK)
+			//地雷爆炸特效
+            //if (MessageBox(hWnd, TEXT("你踩到地雷了！"), TEXT("boom"), MB_OK) == IDOK)
             {
+				PlaySound("boom.wav", NULL, SND_FILENAME | SND_ASYNC); 
+					
+					
+				HDC hdc=GetDC(hWnd); //获得显示上下文设备的句柄
+				HDC mdc=CreateCompatibleDC(hdc);//创建一个与指定设备兼容的内存设备上下文环境
+				HBITMAP bg=(HBITMAP)LoadImage(NULL,"d1.bmp",IMAGE_BITMAP,500,496,LR_LOADFROMFILE);
+				//加载一张指定了路径的bmp图片，此图片大小为63*128，用这个函数之前需要知道这张图的大小，分别填写在第4、5个参数里 ，第二个参数中填图片路径
+				SelectObject(mdc,bg);//选入设备环境
+				BitBlt(hdc,0,400,500,496,mdc,0,0,SRCAND);
+			
                 Reset(hWnd,pChess, pClick);
                 InvalidateRect(hWnd, NULL, true);
             }
