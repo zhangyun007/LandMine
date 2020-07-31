@@ -3,12 +3,14 @@
 #include <windowsx.h>
 #include <strsafe.h>
 #include <time.h>
-
+#include <gdiplus.h>
 
 #pragma comment(lib,"User32.lib")
 #pragma comment(lib,"gdi32.lib")
 #pragma comment(lib, "winmm.lib")
+#pragma comment(lib, "GdiPlus.lib")
 
+using namespace Gdiplus;
 
 //格子区域大小（DIVISIONS * DIVISIONS）
 #define DIVISIONS 20
@@ -81,6 +83,34 @@ int WINAPI WinMain(
     return msg.wParam;
 }
 
+void draw_image(HWND hWnd)
+{
+    HDC hdc;
+    int width,height;
+
+	/*
+    if(image.GetLastStatus() != Status::Ok){
+        MessageBox(hWnd,"图片无效!",NULL,MB_OK);
+        return;
+    }*/
+	
+	Image image(L"d1.bmp");
+    
+    //取得宽度和高度
+    width = image.GetWidth();
+    height = image.GetHeight();
+
+    hdc = GetDC(hWnd);
+
+    //绘图
+    Graphics graphics(hdc);
+	graphics.DrawImage(&image,RectF(0,0,width,height));
+    //graphics.DrawImage(&image,0,0,width,height);
+
+    ReleaseDC(hWnd,hdc);
+
+    return;
+}
 
 LRESULT CALLBACK DealMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -197,17 +227,19 @@ LRESULT CALLBACK DealMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             //if (MessageBox(hWnd, TEXT("你踩到地雷了！"), TEXT("boom"), MB_OK) == IDOK)
             {
 				PlaySound("boom.wav", NULL, SND_FILENAME | SND_ASYNC); 
-					
-					
+				Reset(hWnd,pChess, pClick);
+				
+				
+				/*
 				HDC hdc=GetDC(hWnd); //获得显示上下文设备的句柄
 				HDC mdc=CreateCompatibleDC(hdc);//创建一个与指定设备兼容的内存设备上下文环境
 				HBITMAP bg=(HBITMAP)LoadImage(NULL,"d1.bmp",IMAGE_BITMAP,500,496,LR_LOADFROMFILE);
 				//加载一张指定了路径的bmp图片，此图片大小为63*128，用这个函数之前需要知道这张图的大小，分别填写在第4、5个参数里 ，第二个参数中填图片路径
 				SelectObject(mdc,bg);//选入设备环境
-				BitBlt(hdc,0,400,500,496,mdc,0,0,SRCAND);
-			
-                Reset(hWnd,pChess, pClick);
+				BitBlt(hdc,0,0,500,496,mdc,0,0,SRCAND);
+			*/
                 InvalidateRect(hWnd, NULL, true);
+				draw_image(hWnd);
             }
         }
         else
