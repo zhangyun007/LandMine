@@ -83,33 +83,17 @@ int WINAPI WinMain(
     return msg.wParam;
 }
 
-void draw_image(HWND hWnd)
+void DrawBitmap(char *filename, int x, int y, HDC device)
 {
-    HDC hdc;
-    int width,height;
-
-	/*
-    if(image.GetLastStatus() != Status::Ok){
-        MessageBox(hWnd,"图片无效!",NULL,MB_OK);
-        return;
-    }*/
+	HBITMAP image = (HBITMAP)LoadImage(0, filename, IMAGE_BITMAP, 0 ,0, LR_LOADFROMFILE);
+	BITMAP bm;
 	
-	Image image(L"d1.bmp");
-    
-    //取得宽度和高度
-    width = image.GetWidth();
-    height = image.GetHeight();
-
-    hdc = GetDC(hWnd);
-
-    //绘图
-    Graphics graphics(hdc);
-	graphics.DrawImage(&image,RectF(0,0,width,height));
-    //graphics.DrawImage(&image,0,0,width,height);
-
-    ReleaseDC(hWnd,hdc);
-
-    return;
+	GetObject(image, sizeof(BITMAP), &bm);
+	HDC hdcimage = CreateCompatibleDC(device);
+	SelectObject(hdcimage, image);
+	BitBlt(device, x, y, bm.bmWidth, bm.bmHeight, hdcimage, 0, 0, SRCCOPY);
+	DeleteDC(hdcimage);
+	DeleteObject((HBITMAP)image);
 }
 
 LRESULT CALLBACK DealMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -223,24 +207,15 @@ LRESULT CALLBACK DealMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         //判断是否点击到了雷
         if (iChess[p.x][p.y] == -1)
         {
-			//地雷爆炸特效
-            //if (MessageBox(hWnd, TEXT("你踩到地雷了！"), TEXT("boom"), MB_OK) == IDOK)
-            {
-				PlaySound("boom.wav", NULL, SND_FILENAME | SND_ASYNC); 
-				Reset(hWnd,pChess, pClick);
-				
-				
-				/*
-				HDC hdc=GetDC(hWnd); //获得显示上下文设备的句柄
-				HDC mdc=CreateCompatibleDC(hdc);//创建一个与指定设备兼容的内存设备上下文环境
-				HBITMAP bg=(HBITMAP)LoadImage(NULL,"d1.bmp",IMAGE_BITMAP,500,496,LR_LOADFROMFILE);
-				//加载一张指定了路径的bmp图片，此图片大小为63*128，用这个函数之前需要知道这张图的大小，分别填写在第4、5个参数里 ，第二个参数中填图片路径
-				SelectObject(mdc,bg);//选入设备环境
-				BitBlt(hdc,0,0,500,496,mdc,0,0,SRCAND);
-			*/
-                InvalidateRect(hWnd, NULL, true);
-				draw_image(hWnd);
-            }
+			PlaySound("boom.wav", NULL, SND_FILENAME | SND_ASYNC); 
+
+			hdc = GetDC(hWnd);
+			DrawBitmap("d1.bmp", 10, 20, hdc);
+			ReleaseDC(hWnd, hdc);
+			InvalidateRect(hWnd, NULL, true);
+			
+			Reset(hWnd,pChess, pClick);
+			InvalidateRect(hWnd, NULL, true);
         }
         else
         {
