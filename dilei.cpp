@@ -91,7 +91,9 @@ void DrawBitmap(char *filename, int x, int y, HDC device)
 	GetObject(image, sizeof(BITMAP), &bm);
 	HDC hdcimage = CreateCompatibleDC(device);
 	SelectObject(hdcimage, image);
-	BitBlt(device, x, y, bm.bmWidth, bm.bmHeight, hdcimage, 0, 0, SRCCOPY);
+	//缩放位图
+	StretchBlt(device, x, y, 60, 80, hdcimage, 0, 0, bm.bmWidth, bm.bmHeight, SRCCOPY);
+	//BitBlt(device, x, y, bm.bmWidth, bm.bmHeight, hdcimage, 0, 0, SRCCOPY);
 	DeleteDC(hdcimage);
 	DeleteObject((HBITMAP)image);
 }
@@ -208,12 +210,6 @@ LRESULT CALLBACK DealMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (iChess[p.x][p.y] == -1)
         {
 			PlaySound("boom.wav", NULL, SND_FILENAME | SND_ASYNC); 
-
-			hdc = GetDC(hWnd);
-			DrawBitmap("d1.bmp", 10, 20, hdc);
-			ReleaseDC(hWnd, hdc);
-			InvalidateRect(hWnd, NULL, true);
-			
 			Reset(hWnd,pChess, pClick);
 			InvalidateRect(hWnd, NULL, true);
         }
@@ -302,6 +298,7 @@ LRESULT CALLBACK DealMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return 0;
     case WM_PAINT:
         hdc = BeginPaint(hWnd, &ps);
+			
         //扫雷棋盘绘画
         for (int i = 1; i < DIVISIONS; i++)
         {
@@ -366,6 +363,8 @@ LRESULT CALLBACK DealMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
             }
         }
+		
+		DrawBitmap("d1.bmp", 10, 20, hdc);
 
         EndPaint(hWnd, &ps);
         return 0;
